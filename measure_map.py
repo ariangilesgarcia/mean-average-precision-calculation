@@ -1,5 +1,6 @@
 import numpy as np
 import data_generators
+from sklearn.metrics import average_precision_score
 
 
 def get_map(pred, gt):
@@ -94,13 +95,7 @@ def get_map(pred, gt):
 	return T, P, true_positives, false_positives, false_negatives
 
 
-"""
-    <area alt="" title="" href="#" shape="rect" coords="120,140,287,270" />  # Verdadero positivo
-    <area alt="" title="" href="#" shape="rect" coords="778,134,1039,321" /> # Verdadero positivo
-    <area alt="" title="" href="#" shape="rect" coords="334,437,675,722" />  # Falso negativo (no poner)
-    <area alt="" title="" href="#" shape="rect" coords="50,500,150,650" />  # Falso positivo
-"""
-
+# TEST DATA
 pred = [
 	{'class': 'cocoa', 'prob': 1.0, 'x1': 120, 'y1': 140, 'x2': 287, 'y2': 270},
 	{'class': 'cocoa', 'prob': 1.0, 'x1': 778, 'y1': 134, 'x2': 1039, 'y2': 321},
@@ -108,17 +103,28 @@ pred = [
 	{'class': 'cocoa', 'prob': 1.0, 'x1': 50, 'y1': 500, 'x2': 150, 'y2': 650},
 ]
 
-"""
-  	<area alt="" title="" href="#" shape="rect" coords="122,138,283,267" />
-    <area alt="" title="" href="#" shape="rect" coords="778,134,1039,321" />
-	<area alt="" title="" href="#" shape="rect" coords="334,437,675,722" />
-"""
-
 gt = [
 	{'class': 'cocoa', 'prob': 1.0, 'x1': 122, 'y1': 138, 'x2': 283, 'y2': 267},
 	{'class': 'cocoa', 'prob': 1.0, 'x1': 778, 'y1': 134, 'x2': 1039, 'y2': 321},
 	{'class': 'cocoa', 'prob': 1.0, 'x1': 334, 'y1': 437, 'x2': 675, 'y2': 722},
 ]
 
-x = get_map(pred, gt)
-print(x)
+
+# GET mAP
+t, p, tp, fp, fn = get_map(pred, gt)
+
+T = {}
+P = {}
+
+for key in t.keys():
+	if key not in T:
+		T[key] = []
+		P[key] = []
+	T[key].extend(t[key])
+	P[key].extend(p[key])
+all_aps = []
+for key in T.keys():
+	ap = average_precision_score(T[key], P[key])
+	print('{} AP: {}'.format(key, ap))
+	all_aps.append(ap)
+print('mAP = {}'.format(np.mean(np.array(all_aps))))
