@@ -99,8 +99,8 @@ def get_map(pred, gt, iou_threshold=0.5):
 
 
 # Input paths
-gt_path = './example_data/gt'
-pred_path = './example_data/pred'
+gt_path = '/home/arian/Desktop/json_test/gt'
+pred_path = '/home/arian/Desktop/json_test/pred'
 
 
 # Get JSON files
@@ -111,7 +111,12 @@ all_json_files = glob.glob(os.path.join(gt_path, '*.json'))
 T = {}
 P = {}
 
-for json_file in all_json_files:
+all_tp = 0
+all_fp = 0
+all_fn = 0
+
+for img_id, json_file in enumerate(all_json_files):
+	print('{}/{}'.format(img_id,len(all_json_files)))
 	filename = os.path.basename(json_file)
 
 	gt_file = open(json_file, 'r')
@@ -122,7 +127,9 @@ for json_file in all_json_files:
 
 	t, p, tp, fp, fn = get_map(pred_json, gt_json)
 
-	print(tp, fp, fn)
+	all_tp += tp
+	all_fp += fp
+	all_fn += fn
 
 	for key in t.keys():
 		if key not in T:
@@ -130,9 +137,15 @@ for json_file in all_json_files:
 			P[key] = []
 		T[key].extend(t[key])
 		P[key].extend(p[key])
+
 	all_aps = []
+
 	for key in T.keys():
 		ap = average_precision_score(T[key], P[key])
 		print('{} AP: {}'.format(key, ap))
 		all_aps.append(ap)
+
 	print('mAP = {}'.format(np.mean(np.array(all_aps))))
+	print()
+
+print(all_tp, all_fp, all_fn)
