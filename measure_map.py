@@ -6,7 +6,7 @@ import data_generators
 from sklearn.metrics import average_precision_score
 
 
-def get_map(pred, gt):
+def get_map(pred, gt, iou_threshold=0.5):
 	T = {}
 	P = {}
 
@@ -63,9 +63,9 @@ def get_map(pred, gt):
 			if gt_seen:
 				continue
 
-			# Else, check if IoU is greater than 0.5
+			# Else, check if IoU is greater than a value
 			iou = data_generators.iou((pred_x1, pred_y1, pred_x2, pred_y2), (gt_x1, gt_y1, gt_x2, gt_y2))
-			if iou >= 0.3:
+			if iou >= iou_threshold:
 				# Set found_patch and bbox matched to true
 				found_match = True
 				gt_box['bbox_matched'] = True
