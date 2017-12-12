@@ -1,3 +1,6 @@
+import os
+import glob
+import json
 import numpy as np
 import data_generators
 from sklearn.metrics import average_precision_score
@@ -95,36 +98,41 @@ def get_map(pred, gt):
 	return T, P, true_positives, false_positives, false_negatives
 
 
-# TEST DATA
-pred = [
-	{'class': 'cocoa', 'prob': 1.0, 'x1': 120, 'y1': 140, 'x2': 287, 'y2': 270},
-	{'class': 'cocoa', 'prob': 1.0, 'x1': 778, 'y1': 134, 'x2': 1039, 'y2': 321},
-	# {'class': 'cocoa', 'prob': 1.0, 'x1': 334, 'y1': 437, 'x2': 675, 'y2': 722},
-	{'class': 'cocoa', 'prob': 1.0, 'x1': 50, 'y1': 500, 'x2': 150, 'y2': 650},
-]
-
-gt = [
-	{'class': 'cocoa', 'prob': 1.0, 'x1': 122, 'y1': 138, 'x2': 283, 'y2': 267},
-	{'class': 'cocoa', 'prob': 1.0, 'x1': 778, 'y1': 134, 'x2': 1039, 'y2': 321},
-	{'class': 'cocoa', 'prob': 1.0, 'x1': 334, 'y1': 437, 'x2': 675, 'y2': 722},
-]
+# Input paths
+gt_path = './example_data/gt'
+pred_path = './example_data/pred'
 
 
-# GET mAP
-t, p, tp, fp, fn = get_map(pred, gt)
+# Get JSON files
+all_json_files = glob.glob(os.path.join(gt_path, '*.json'))
 
+
+# Get mAP
 T = {}
 P = {}
 
-for key in t.keys():
-	if key not in T:
-		T[key] = []
-		P[key] = []
-	T[key].extend(t[key])
-	P[key].extend(p[key])
-all_aps = []
-for key in T.keys():
-	ap = average_precision_score(T[key], P[key])
-	print('{} AP: {}'.format(key, ap))
-	all_aps.append(ap)
-print('mAP = {}'.format(np.mean(np.array(all_aps))))
+for json_file in all_json_files:
+	filename = os.path.basename(json_file)
+
+	gt_file = open(json_file, 'r')
+	pred_file = open(os.path.join(pred_path, filename), 'r')
+
+	gt_json = json.load(gt_file)
+	pred_json = json.load(pred_file)
+
+	t, p, tp, fp, fn = get_map(pred_json, gt_json)
+
+	print(tp, fp, fn)
+
+	for key in t.keys():
+		if key not in T:
+			T[key] = []
+			P[key] = []
+		T[key].extend(t[key])
+		P[key].extend(p[key])
+	all_aps = []
+	for key in T.keys():
+		ap = average_precision_score(T[key], P[key])
+		print('{} AP: {}'.format(key, ap))
+		all_aps.append(ap)
+	print('mAP = {}'.format(np.mean(np.array(all_aps))))
